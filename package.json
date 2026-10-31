@@ -1,0 +1,12 @@
+{
+  "name": "com.itkamianets.temnorid-village",
+  "version": "0.1.0",
+  "displayName": "Temnorid Village",
+  "description": "A Temnorid lord's village and farm for any game: reads the player's Lords save (Firestore, project temnorid-arena) or builds a standard default village, ports Lords' stock rules exactly, shares the stock with Lords (only the stock field is ever written), and draws a graybox 3D village with its farm.",
+  "unity": "6000.6",
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.2"
+  },
+  "keywords": ["temnorid", "lords", "village", "farm", "stock", "firestore"],
+  "author": { "name": "IT Kamianets" }
+}
