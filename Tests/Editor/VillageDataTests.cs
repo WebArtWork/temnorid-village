@@ -169,17 +169,17 @@ namespace Temnorid.Village.Tests
 			progress.Farm = new FarmSave { Plots = { new FarmPlot { Id = 1, Resource = "wood", X = 900, Y = 500 }, new FarmPlot { Id = 2, Resource = "clay", X = 1000, Y = 400 } } };
 			var data = VillageLayout.Build(progress, true, T0);
 			// The middle of the two places is (900, 450): 100 units west and east, 50 units south and north.
-			Assert.AreEqual(-4f, data.SlotById(1).X, 1e-4f, "100 units * 0.04 m");
-			Assert.AreEqual(-2f, data.SlotById(1).Z, 1e-4f, "south of the centre is -z");
-			Assert.AreEqual(4f, data.SlotById(2).X, 1e-4f);
-			Assert.AreEqual(2f, data.SlotById(2).Z, 1e-4f);
-			// The farm map's middle is (900, 500), at 0.1 m a unit.
+			Assert.AreEqual(-10f, data.SlotById(1).X, 1e-4f, "100 units * 0.1 m");
+			Assert.AreEqual(-5f, data.SlotById(1).Z, 1e-4f, "south of the centre is -z");
+			Assert.AreEqual(10f, data.SlotById(2).X, 1e-4f);
+			Assert.AreEqual(5f, data.SlotById(2).Z, 1e-4f);
+			// The farm map's middle is (900, 500), at 0.25 m a unit.
 			Assert.AreEqual(0f, data.PlotById(1).X, 1e-4f);
 			Assert.AreEqual(0f, data.PlotById(1).Z, 1e-4f);
-			Assert.AreEqual(10f, data.PlotById(2).X, 1e-4f);
-			Assert.AreEqual(10f, data.PlotById(2).Z, 1e-4f);
-			Assert.AreEqual(90f, data.FarmRx, 1e-3f, "1800 units * 0.1 / 2");
-			Assert.AreEqual(50f, data.FarmRz, 1e-3f);
+			Assert.AreEqual(25f, data.PlotById(2).X, 1e-4f);
+			Assert.AreEqual(25f, data.PlotById(2).Z, 1e-4f);
+			Assert.AreEqual(225f, data.FarmRx, 1e-3f, "1800 units * 0.25 / 2");
+			Assert.AreEqual(125f, data.FarmRz, 1e-3f);
 		}
 
 		[Test]
@@ -190,7 +190,7 @@ namespace Temnorid.Village.Tests
 			progress.Village.Slots.Add(new VillageSlot { Id = 13, Extra = true });
 			progress.Village.Slots.Add(new VillageSlot { Id = 14, Extra = true });
 			var data = VillageLayout.Build(progress, true, T0);
-			Assert.AreEqual(90f * Mathf.Sqrt(36f / 24f), data.FarmRx, 1e-2f, "36 plots: the land grows with the square root of 36 / 24, as in Lords");
+			Assert.AreEqual(225f * Mathf.Sqrt(36f / 24f), data.FarmRx, 1e-2f, "36 plots: the land grows with the square root of 36 / 24, as in Lords");
 			var extra = data.SlotById(13);
 			Assert.IsTrue(extra.Extra);
 			Assert.AreNotEqual(data.SlotById(14).X, extra.X);

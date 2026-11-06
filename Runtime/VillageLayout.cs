@@ -8,9 +8,9 @@ namespace Temnorid.Village
 	/// Turns a Lords save (<see cref="LordsProgress"/>) into <see cref="VillageData"/>: levels at one moment and everything in metres.
 	/// <para>
 	/// <b>Scale.</b> Lords draws the village on a 1800 x 1000 map and the farm on another 1800 x 1000 map where the village is only a
-	/// small blob in the middle, so the two cannot share one scale. The village uses <see cref="MetresPerVillageUnit"/> (0.04: the
-	/// 170-unit spacing of its places becomes 6.8 m, a village of about 50 x 30 m) and the farm uses <see cref="MetresPerFarmUnit"/>
-	/// (0.1: the farm's ring of plots is about 125 x 50 m round the village). The village centre is the origin, +x is east and +z is
+	/// small blob in the middle, so the two cannot share one scale. The village uses <see cref="MetresPerVillageUnit"/> (0.1: the
+	/// 170-unit spacing of its places becomes 17 m, a village of about 120 x 70 m) and the farm uses <see cref="MetresPerFarmUnit"/>
+	/// (0.25: the farm's ring of plots is about 125 x 50 m round the village). The village centre is the origin, +x is east and +z is
 	/// north (Lords' y points down the screen, so z is minus y).
 	/// </para>
 	/// <para>
@@ -23,15 +23,15 @@ namespace Temnorid.Village
 	/// </summary>
 	public static class VillageLayout
 	{
-		public const float MetresPerVillageUnit = 0.04f;
-		public const float MetresPerFarmUnit = 0.1f;
+		public const float MetresPerVillageUnit = 0.1f;
+		public const float MetresPerFarmUnit = 0.25f;
 
 		const double FarmMapWidth = 1800;
 		const double FarmMapHeight = 1000;
 		const int FarmPlotCount = 24;
 		const double Layout1StretchX = 1.8;
 		const double Layout1StretchY = 1.2;
-		const float WallMargin = 4f;
+		const float WallMargin = 10f;
 
 		public static VillageData Build(LordsProgress progress, bool isLords, long now)
 		{
@@ -69,12 +69,12 @@ namespace Temnorid.Village
 			}
 
 			// The wall marks the edge of the village; without it the same edge is just a little looser.
-			var rx = 18f;
-			var rz = 11f;
+			var rx = 45f;
+			var rz = 28f;
 			foreach (var slot in slots)
 			{
-				rx = Math.Max(rx, Math.Abs(slot.X) + 3.5f);
-				rz = Math.Max(rz, Math.Abs(slot.Z) + 3.5f);
+				rx = Math.Max(rx, Math.Abs(slot.X) + 9f);
+				rz = Math.Max(rz, Math.Abs(slot.Z) + 9f);
 			}
 			data.VillageRx = rx + WallMargin;
 			data.VillageRz = rz + WallMargin;
@@ -116,14 +116,14 @@ namespace Temnorid.Village
 			}
 
 			// Bought places have no saved spot: a ring a little outside the others, spread by the golden angle.
-			float maxX = 12f, maxZ = 8f;
+			float maxX = 30f, maxZ = 20f;
 			foreach (var slot in data.Slots) { maxX = Math.Max(maxX, Math.Abs(slot.X)); maxZ = Math.Max(maxZ, Math.Abs(slot.Z)); }
 			var index = 0;
 			extras.Sort((a, b) => a.Id.CompareTo(b.Id));
 			foreach (var slot in extras)
 			{
 				var angle = (float)(index++ * 2.399963 + 0.6);
-				data.Slots.Add(new SlotData { Id = slot.Id, Extra = true, X = (maxX + 6f) * (float)Math.Cos(angle), Z = (maxZ + 5f) * (float)Math.Sin(angle) });
+				data.Slots.Add(new SlotData { Id = slot.Id, Extra = true, X = (maxX + 15f) * (float)Math.Cos(angle), Z = (maxZ + 12f) * (float)Math.Sin(angle) });
 			}
 			return data.Slots;
 		}
@@ -195,11 +195,11 @@ namespace Temnorid.Village
 			var (sx, sz) = PositionOf(data, data.StoreSlot);
 			var best = (x: 0f, z: -data.VillageRz - 2f);
 			var bestDistance = float.MaxValue;
-			for (var x = -data.VillageRx; x <= data.VillageRx; x += 1.5f)
+			for (var x = -data.VillageRx; x <= data.VillageRx; x += 2f)
 			{
-				for (var z = -data.VillageRz; z <= data.VillageRz; z += 1.5f)
+				for (var z = -data.VillageRz; z <= data.VillageRz; z += 2f)
 				{
-					if (IsInsideBuilding(data, x, z, 1.8f)) continue;
+					if (IsInsideBuilding(data, x, z, 2.5f)) continue;
 					var distance = (x - sx) * (x - sx) + (z - sz) * (z - sz);
 					if (distance < bestDistance) { bestDistance = distance; best = (x, z); }
 				}

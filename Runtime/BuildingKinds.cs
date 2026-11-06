@@ -49,21 +49,39 @@ namespace Temnorid.Village
 			}
 		}
 
-		/// <summary>Width of the box that stands for a building: it grows with the level up to level 8, so places 7 m apart never overlap.</summary>
+		/// <summary>
+		/// Width of the box that stands for a building, in metres, sized like buildings of about the year 1300: a house is 5 to 7 m wide and 3.5 to 6 m
+		/// to the eaves, a warehouse or granary is bigger, the hall, a castle and the arena are the biggest, a well is small. It grows a little with
+		/// the level up to level 8. The places are about 17 m apart (see <see cref="VillageLayout"/>), so buildings never touch.
+		/// </summary>
 		public static float Width(string type, int level)
 		{
-			var width = 3.0f + 0.25f * Math.Min(Math.Max(level, 1), 8);
-			if (type == LordsHall || type == "castle" || type == "arena") width *= 1.25f;
-			return width;
+			var width = 5.0f + 0.25f * Math.Min(Math.Max(level, 1), 8);
+			switch (type)
+			{
+				case LordsHall: case "castle": return width * 1.7f;
+				case "arena": return width * 2.6f;
+				case Warehouse: case Granary: case "barracks": case "stable": return width * 1.35f;
+				case "marketplace": case "embassy": case "academy": case "town-hall": case "treasury": return width * 1.2f;
+				case Well: return width * 0.5f;
+				default: return width;
+			}
 		}
 
 		public static float Depth(string type, int level) => Width(type, level) * 0.85f;
 
+		/// <summary>Height to the eaves; the roof sits on top of it.</summary>
 		public static float Height(string type, int level)
 		{
-			var height = 2.2f + 0.3f * Math.Min(Math.Max(level, 1), 10);
-			if (type == LordsHall || type == "castle") height *= 1.2f;
-			return height;
+			var height = 3.2f + 0.25f * Math.Min(Math.Max(level, 1), 10);
+			switch (type)
+			{
+				case LordsHall: case "castle": return height * 1.5f;
+				case "arena": return height * 0.8f;
+				case Well: return height * 0.4f;
+				case Warehouse: case Granary: case "barracks": return height * 1.1f;
+				default: return height;
+			}
 		}
 	}
 }

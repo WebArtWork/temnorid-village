@@ -29,6 +29,13 @@ namespace Temnorid.Village
 		public Material LitTemplate;
 		/// <summary>The depth-tested text material (shader <c>Temnorid/WorldText</c> of 3d-unity-graybox). If empty it is made from the shader by name, else the font's own.</summary>
 		public Material TextMaterial;
+		/// <summary>
+		/// How much bigger than the data's metres the village and farm are drawn. 1 is the size the layout is worked out in (a house about 3 to 5 m wide,
+		/// which looks small and crowded next to a 1.8 m player); 2.5 would make everything 2.5 times bigger. Set it before <see cref="Build"/>.
+		/// </summary>
+		public float WorldScale = 1f;
+		/// <summary>How much bigger than its 6 m graybox a farm plot (patch, trees, rocks, markers, label) is drawn: a field of about 10 m.</summary>
+		public float PlotScale = 1.7f;
 
 		readonly Dictionary<Color32, Material> _materials = new Dictionary<Color32, Material>();
 		readonly List<PlotHandle> _plots = new List<PlotHandle>();
@@ -60,7 +67,7 @@ namespace Temnorid.Village
 		public Vector3 StorePosition => StoreBuilding != null ? StoreBuilding.position : transform.position;
 
 		/// <summary>A free spot near the stores where a player can start.</summary>
-		public Vector3 SpawnPosition => Data != null ? transform.TransformPoint(Data.SpawnX, 0.1f, Data.SpawnZ) : transform.position;
+		public Vector3 SpawnPosition => Data != null && _root != null ? _root.TransformPoint(Data.SpawnX, 0.1f / Mathf.Max(0.01f, WorldScale), Data.SpawnZ) : transform.position;
 
 		void OnDestroy() => Clear();
 
@@ -85,6 +92,7 @@ namespace Temnorid.Village
 			Data = data;
 			_root = new GameObject("VillageRoot").transform;
 			_root.SetParent(transform, false);
+			_root.localScale = Vector3.one * Mathf.Max(0.01f, WorldScale);
 
 			BuildGround(data);
 			BuildRoads(data);
@@ -102,9 +110,9 @@ namespace Temnorid.Village
 		{
 			var grass = Mat(new Color(0.33f, 0.55f, 0.28f));
 			var sand = Mat(new Color(0.82f, 0.75f, 0.6f));
-			Prim(PrimitiveType.Cube, "Ground", _root, new Vector3(0f, -0.5f, 0f), new Vector3(data.FarmRx * 2f + 80f, 1f, data.FarmRz * 2f + 80f), grass, true);
-			var plaza = Prim(PrimitiveType.Cylinder, "Plaza", _root, new Vector3(0f, 0.03f, 0f), new Vector3(15f, 0.03f, 15f), sand);
-			plaza.transform.localScale = new Vector3(15f, 0.03f, 10f);
+			Prim(PrimitiveType.Cube, "Ground", _root, new Vector3(0f, -0.5f, 0f), new Vector3(data.FarmRx * 2f + 200f, 1f, data.FarmRz * 2f + 200f), grass, true);
+			var plaza = Prim(PrimitiveType.Cylinder, "Plaza", _root, new Vector3(0f, 0.03f, 0f), new Vector3(34f, 0.03f, 34f), sand);
+			plaza.transform.localScale = new Vector3(34f, 0.03f, 24f);
 		}
 
 		void BuildRoads(VillageData data)
@@ -114,7 +122,7 @@ namespace Temnorid.Village
 			{
 				var length = Mathf.Sqrt(slot.X * slot.X + slot.Z * slot.Z);
 				if (length < 1f) continue;
-				var road = Prim(PrimitiveType.Cube, "Road_" + slot.Id, _root, new Vector3(slot.X / 2f, 0.02f, slot.Z / 2f), new Vector3(1.6f, 0.04f, length), dirt);
+				var road = Prim(PrimitiveType.Cube, "Road_" + slot.Id, _root, new Vector3(slot.X / 2f, 0.02f, slot.Z / 2f), new Vector3(4f, 0.04f, length), dirt);
 				road.transform.localRotation = Quaternion.LookRotation(new Vector3(slot.X, 0f, slot.Z));
 			}
 		}
@@ -125,7 +133,7 @@ namespace Temnorid.Village
 			foreach (var slot in data.Slots)
 			{
 				if (data.BuildingAt(slot.Id) != null) continue;
-				Prim(PrimitiveType.Cube, "FreePlace_" + slot.Id, _root, new Vector3(slot.X, 0.05f, slot.Z), new Vector3(3f, 0.1f, 3f), tile);
+				Prim(PrimitiveType.Cube, "FreePlace_" + slot.Id, _root, new Vector3(slot.X, 0.05f, slot.Z), new Vector3(7f, 0.1f, 7f), tile);
 			}
 		}
 
@@ -184,7 +192,7 @@ namespace Temnorid.Village
 				var line = building.Working
 					? (building.Level == 0 ? "Building to level " + building.Target : "Level " + building.Level + " > " + building.Target)
 					: "Level " + building.Level;
-				Label(root.transform, "Label", title + "\n" + line, new Vector3(0f, height + 1.4f, 0f), 0.1f);
+				Label(root.transform, "Label", title + "\n" + line, new Vector3(0f, height + 3f, 0f), 0.2f);
 				_buildings[building.Slot] = root.transform;
 			}
 		}
@@ -215,7 +223,7 @@ namespace Temnorid.Village
 			var wall = new GameObject("Wall").transform;
 			wall.SetParent(_root, false);
 			const int segments = 64;
-			var height = Mathf.Min(4f, 1.4f + 0.25f * Mathf.Max(1, data.WallLevel));
+			var height = Mathf.Min(6f, 3f + 0.4f * Mathf.Max(1, data.WallLevel));
 			for (var i = 0; i < segments; i++)
 			{
 				var t0 = 2f * Mathf.PI * i / segments;
@@ -227,7 +235,7 @@ namespace Temnorid.Village
 				var b = new Vector3(data.VillageRx * Mathf.Cos(t1), 0f, data.VillageRz * Mathf.Sin(t1));
 				var centre = (a + b) / 2f;
 				var piece = Prim(data.WallLevel > 0 ? PrimitiveType.Cube : PrimitiveType.Cylinder, "Segment_" + i, wall, centre + Vector3.up * (height / 2f),
-					data.WallLevel > 0 ? new Vector3(0.8f, height, (b - a).magnitude * 1.04f) : new Vector3(0.3f, height / 2f, 0.3f), data.WallLevel > 0 ? stone : wood, data.WallLevel > 0);
+					data.WallLevel > 0 ? new Vector3(1.4f, height, (b - a).magnitude * 1.04f) : new Vector3(0.6f, height / 2f, 0.6f), data.WallLevel > 0 ? stone : wood, data.WallLevel > 0);
 				if (data.WallLevel > 0) piece.transform.localRotation = Quaternion.LookRotation(b - a);
 			}
 			Label(wall, "Label", "Wall\n" + (data.WallWorking ? (data.WallLevel == 0 ? "Building" : "Level " + data.WallLevel + " (upgrading)") : "Level " + data.WallLevel),
@@ -254,6 +262,7 @@ namespace Temnorid.Village
 				var root = new GameObject("Plot_" + plot.Id + "_" + plot.Resource);
 				root.transform.SetParent(_root, false);
 				root.transform.localPosition = new Vector3(plot.X, 0f, plot.Z);
+				root.transform.localScale = Vector3.one * PlotScale;
 				// A trigger box: nothing blocks the player, but the plot has a body a game can measure its distance to.
 				var box = root.AddComponent<BoxCollider>();
 				box.isTrigger = true;
@@ -334,10 +343,10 @@ namespace Temnorid.Village
 			var rock = Mat(new Color(0.55f, 0.55f, 0.58f));
 			var random = new System.Random(unchecked((int)(long)data.Seed));
 			var placed = 0;
-			for (var attempt = 0; attempt < 600 && placed < 55; attempt++)
+			for (var attempt = 0; attempt < 1800 && placed < 150; attempt++)
 			{
-				var x = (float)(random.NextDouble() * 2 - 1) * (data.FarmRx + 25f);
-				var z = (float)(random.NextDouble() * 2 - 1) * (data.FarmRz + 25f);
+				var x = (float)(random.NextDouble() * 2 - 1) * (data.FarmRx + 60f);
+				var z = (float)(random.NextDouble() * 2 - 1) * (data.FarmRz + 60f);
 				var kind = random.Next(3);
 				// Keep the village, the plots and the roads out of the way.
 				var vx = x / (data.VillageRx + 3f);
@@ -346,17 +355,17 @@ namespace Temnorid.Village
 				var blocked = false;
 				foreach (var plot in data.Plots)
 				{
-					if ((plot.X - x) * (plot.X - x) + (plot.Z - z) * (plot.Z - z) < 64f) { blocked = true; break; }
+					if ((plot.X - x) * (plot.X - x) + (plot.Z - z) * (plot.Z - z) < 225f) { blocked = true; break; }
 				}
 				if (blocked) continue;
 				placed++;
 				if (kind == 0)
 				{
-					Prim(PrimitiveType.Sphere, "Rock", scenery, new Vector3(x, 0.4f, z), new Vector3(1.6f, 0.9f, 1.3f), rock);
+					Prim(PrimitiveType.Sphere, "Rock", scenery, new Vector3(x, 0.7f, z), new Vector3(2.8f, 1.5f, 2.3f), rock);
 				}
 				else
 				{
-					var size = 0.8f + (float)random.NextDouble() * 0.6f;
+					var size = 1.6f + (float)random.NextDouble() * 1.0f;
 					Prim(PrimitiveType.Cylinder, "Trunk", scenery, new Vector3(x, 1f * size, z), new Vector3(0.4f * size, 1f * size, 0.4f * size), trunk);
 					Prim(PrimitiveType.Sphere, "Crown", scenery, new Vector3(x, 2.8f * size, z), new Vector3(2.2f * size, 2.2f * size, 2.2f * size), leaves);
 				}

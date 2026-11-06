@@ -94,12 +94,14 @@ namespace Temnorid.Village.Tests
 		{
 			public Task<ProgressDocument> LoadAsync() => throw new InvalidOperationException("boom with a uid in it");
 			public Task<StockWriteResult> SaveStockAsync(JObject stock, string updateTime) => throw new InvalidOperationException();
+			public Task<StockWriteResult> SaveHeroAsync(JObject hero, string updateTime) => throw new InvalidOperationException();
 		}
 
 		sealed class Never : IProgressStore
 		{
 			public Task<ProgressDocument> LoadAsync() => new TaskCompletionSource<ProgressDocument>().Task;
 			public Task<StockWriteResult> SaveStockAsync(JObject stock, string updateTime) => Task.FromResult(StockWriteResult.Failed);
+			public Task<StockWriteResult> SaveHeroAsync(JObject hero, string updateTime) => Task.FromResult(StockWriteResult.Failed);
 		}
 
 		[Test]

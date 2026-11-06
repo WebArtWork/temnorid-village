@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- `VillageView.WorldScale` (default 2.5): the village and farm are drawn 2.5 times bigger (buildings, distances, plots, labels), so a house is no longer smaller than a few players and the places are not crowded. The layout in metres is unchanged.
+
 ## 0.1.0
 
 - Models of the Lords save (`LordsProgress`, stock, village, farm, construction).

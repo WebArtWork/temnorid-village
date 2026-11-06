@@ -99,6 +99,8 @@ namespace Temnorid.Village
 		[JsonProperty("stock")] public StockSave Stock;
 		[JsonProperty("village")] public VillageSave Village;
 		[JsonProperty("farm")] public FarmSave Farm;
+		/// <summary>The lord's hero, created by Lords the first time it opens; null before that.</summary>
+		[JsonProperty("hero")] public HeroSave Hero;
 
 		[JsonIgnore] public string LordName => Lord != null && !string.IsNullOrWhiteSpace(Lord.Name) ? Lord.Name : "";
 

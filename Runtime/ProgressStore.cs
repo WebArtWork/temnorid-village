@@ -73,6 +73,12 @@ namespace Temnorid.Village
 		/// provided the document is still at <paramref name="updateTime"/>.
 		/// </summary>
 		Task<StockWriteResult> SaveStockAsync(JObject stock, string updateTime);
+
+		/// <summary>
+		/// Replaces the document's <c>hero</c> field (a trip into a dungeon, or its end) and nothing else, provided the document is still at
+		/// <paramref name="updateTime"/>.
+		/// </summary>
+		Task<StockWriteResult> SaveHeroAsync(JObject hero, string updateTime);
 	}
 
 	/// <summary>
@@ -115,6 +121,19 @@ namespace Temnorid.Village
 				case FirestoreStatus.Ok: return ProgressDocument.Found(result.Document.Data, result.Document.UpdateTime);
 				case FirestoreStatus.NotFound: return ProgressDocument.Missing();
 				default: return ProgressDocument.Failure(result.Message);
+			}
+		}
+
+		public async Task<StockWriteResult> SaveHeroAsync(JObject hero, string updateTime)
+		{
+			var path = Path;
+			if (path == null || string.IsNullOrEmpty(updateTime) || hero == null) return StockWriteResult.Failed;
+			var result = await _client.PatchAsync(path, new JObject { ["hero"] = hero }, new[] { "hero" }, updateTime);
+			switch (result.Status)
+			{
+				case FirestoreStatus.Ok: return StockWriteResult.Saved;
+				case FirestoreStatus.Conflict: return StockWriteResult.Conflict;
+				default: return StockWriteResult.Failed;
 			}
 		}
 
@@ -173,6 +192,15 @@ namespace Temnorid.Village
 			if (Offline) return Task.FromResult(ProgressDocument.Failure("Offline."));
 			if (Data == null) return Task.FromResult(ProgressDocument.Missing());
 			return Task.FromResult(ProgressDocument.Found((JObject)Data.DeepClone(), UpdateTime));
+		}
+
+		public Task<StockWriteResult> SaveHeroAsync(JObject hero, string updateTime)
+		{
+			if (Offline || Data == null) return Task.FromResult(StockWriteResult.Failed);
+			if (updateTime != UpdateTime) return Task.FromResult(StockWriteResult.Conflict);
+			Data["hero"] = hero.DeepClone();
+			Version++;
+			return Task.FromResult(StockWriteResult.Saved);
 		}
 
 		public Task<StockWriteResult> SaveStockAsync(JObject stock, string updateTime)
